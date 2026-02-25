@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Personal Purchase Organizer
 
-## Getting Started
+A web application for organizing and tracking personal purchases from various online marketplaces (AliExpress, Temu, OLX, Rozetka). Built with Next.js, TypeScript, PostgreSQL, and Prisma.
 
-First, run the development server:
+## Features
+
+- Authentication with NextAuth.js
+- Purchase tracking and management
+- Categories and tags for organization
+- Image upload with drag-and-drop
+- Advanced search and filtering
+- Dashboard with statistics
+- Multi-marketplace support (AliExpress, Temu, OLX, Rozetka)
+- Multi-currency support (USD, EUR, UAH)
+
+## Quick Start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 1. Generate secret and setup environment
+openssl rand -base64 32
+cp .env.example .env
+# Add NEXTAUTH_SECRET to .env
+
+# 2. Initialize and run
+make init
+
+# 3. Access at http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Common Commands
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+make dev              # Start development
+make down             # Stop containers
+make logs             # View logs
+make migrate          # Run migrations
+make prisma-studio    # Open database UI
+make help             # Show all commands
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tech Stack
 
-## Learn More
+**Frontend:** Next.js 16, TypeScript, TailwindCSS, React Hook Form, Zod, TanStack Query
+**Backend:** Next.js API Routes, Prisma ORM, PostgreSQL 16, NextAuth.js
+**DevOps:** Docker, Docker Compose, Makefile
 
-To learn more about Next.js, take a look at the following resources:
+## Documentation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **[Quick Start Guide](docs/QUICK_START.md)** - 5-minute setup
+- **[Docker Guide](docs/DOCKER_SETUP.md)** - Detailed Docker usage and commands
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Project Structure
 
-## Deploy on Vercel
+```
+app/              # Next.js routes and API
+components/       # React components
+lib/              # Utilities
+prisma/           # Database schema
+docker-compose.*  # Docker configurations
+Makefile          # Development commands
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Troubleshooting
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+make clean && make init    # Fresh start
+make logs                  # Debug issues
+```
+
+For more help, see [Quick Start Guide](docs/QUICK_START.md) or run `make help`.
