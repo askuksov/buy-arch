@@ -5,7 +5,6 @@ const nextConfig: NextConfig = {
   output: 'standalone',
 
   images: {
-    domains: ['localhost'],
     remotePatterns: [
       {
         protocol: 'http',

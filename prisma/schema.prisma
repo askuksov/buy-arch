@@ -9,37 +9,37 @@ datasource db {
   provider = "postgresql"
 }
 
-// User model for authentication
+// User Model for Authentication
 model User {
-  id            String    @id @default(cuid())
+  id            String    @id @default(uuid())
   email         String    @unique
+  password      String
   name          String?
   emailVerified DateTime?
   image         String?
-  password      String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  accounts      Account[]
-  sessions      Session[]
-  purchases     Purchase[]
+  // Relations
+  accounts Account[]
+  sessions Session[]
 
   @@map("users")
 }
 
-// NextAuth models
+// NextAuth Account Model
 model Account {
-  id                String  @id @default(cuid())
+  id                String  @id @default(uuid())
   userId            String
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String? @db.Text
   session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -48,16 +48,19 @@ model Account {
   @@map("accounts")
 }
 
+// NextAuth Session Model
 model Session {
-  id           String   @id @default(cuid())
+  id           String   @id @default(uuid())
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("sessions")
 }
 
+// NextAuth Verification Token Model
 model VerificationToken {
   identifier String
   token      String   @unique
@@ -67,65 +70,121 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-// Purchase organization models
+// Currency reference table
+model Currency {
+  code      String  @id // USD, UAH, EUR
+  name      String  // US Dollar, Ukrainian Hryvnia, Euro
+  symbol    String  // $, ₴, €
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  // Relations
+  purchases Purchase[]
+
+  @@map("currencies")
+}
+
+// Marketplace reference table
+model Marketplace {
+  code      String  @id // aliexpress, temu, olx, rozetka
+  name      String  // AliExpress, Temu, OLX, Rozetka
+  color     String? // Brand color for UI display
+  url       String? // Official website URL
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  // Relations
+  purchases Purchase[]
+
+  @@map("marketplaces")
+}
+
+// Purchase Model - Core entity
 model Purchase {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  amount      Float
-  currency    String   @default("USD")
-  date        DateTime @default(now())
-  category    String?
-  vendor      String?
-  status      String   @default("pending") // pending, completed, cancelled
-  userId      String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(uuid())
+  title        String
+  description  String?  @db.Text
+  price        Decimal  @db.Decimal(10, 2)
+  purchaseDate DateTime
+  productUrl   String?  @db.Text
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  attachments Attachment[]
-  tags        PurchaseTag[]
+  // Foreign Keys
+  currencyCode    String
+  marketplaceCode String
+  categoryId      String?
 
-  @@index([userId])
-  @@index([date])
-  @@index([category])
+  // Relations
+  currency     Currency     @relation(fields: [currencyCode], references: [code], onDelete: Restrict)
+  marketplace  Marketplace  @relation(fields: [marketplaceCode], references: [code], onDelete: Restrict)
+  category     Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags         Tag[]
+  images       Image[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes for better query performance
+  @@index([categoryId])
+  @@index([marketplaceCode])
+  @@index([currencyCode])
+  @@index([purchaseDate])
+  @@index([createdAt])
   @@map("purchases")
 }
 
-model Attachment {
-  id         String   @id @default(cuid())
-  filename   String
-  filepath   String
-  mimetype   String
-  size       Int
-  purchaseId String
-  createdAt  DateTime @default(now())
+// Category Model
+model Category {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  color     String?    // Hex color for UI display
+  icon      String?    // Icon name for UI display
+  isActive  Boolean    @default(true)
+  sortOrder Int        @default(0)
 
-  purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  // Relations
+  purchases Purchase[]
 
-  @@index([purchaseId])
-  @@map("attachments")
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categories")
 }
 
+// Tag Model
 model Tag {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  color     String?
-  createdAt DateTime @default(now())
+  id       String     @id @default(uuid())
+  name     String     @unique
+  color    String?    // Hex color for UI display
+  isActive Boolean    @default(true)
 
-  purchases PurchaseTag[]
+  // Relations
+  purchases Purchase[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
 
   @@map("tags")
 }
 
-model PurchaseTag {
+// Image Model
+model Image {
+  id         String   @id @default(uuid())
+  url        String   // Relative path: /uploads/filename.jpg
+  filename   String   // Original filename
+  size       Int      // File size in bytes
+  mimeType   String   // image/jpeg, image/png, etc.
+
+  // Foreign Keys
   purchaseId String
-  tagId      String
-  createdAt  DateTime @default(now())
 
+  // Relations
   purchase Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
-  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
-  @@id([purchaseId, tagId])
-  @@map("purchase_tags")
+  // Timestamps
+  createdAt DateTime @default(now())
+
+  @@index([purchaseId])
+  @@map("images")
 }

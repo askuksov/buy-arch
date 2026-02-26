@@ -1,4 +1,10 @@
-.PHONY: help up down dev logs restart clean migrate migrate-create migrate-deploy prisma-studio seed install build
+.PHONY: help up down dev logs restart clean migrate migrate-create migrate-deploy migrate-status prisma-studio seed install build
+
+# Load environment variables from .env file
+ifneq (,$(wildcard .env))
+    include .env
+    export
+endif
 
 # Docker Compose file aliases
 COMPOSE_FILE_LOCAL := docker-compose.local.yml
@@ -82,6 +88,10 @@ migrate-reset: ## Reset database (WARNING: deletes all data)
 		$(DOCKER_COMPOSE_LOCAL) exec app npx prisma migrate reset --force; \
 	fi
 
+migrate-status: ## Show migration status
+	@echo "$(GREEN)Migration status:$(RESET)"
+	$(DOCKER_COMPOSE_LOCAL) exec app npx prisma migrate status
+
 prisma-studio: ## Open Prisma Studio
 	@echo "$(GREEN)Opening Prisma Studio...$(RESET)"
 	@echo "$(YELLOW)Prisma Studio: http://localhost:5555$(RESET)"
@@ -137,8 +147,20 @@ init: ## Initialize project (first time setup)
 	@echo "$(YELLOW)Prisma Studio: http://localhost:5555$(RESET)"
 
 status: ## Show status of all containers
-	@echo "$(GREEN)Development containers:$(RESET)"
-	@$(DOCKER_COMPOSE_LOCAL) ps 2>/dev/null || echo "No dev containers running"
-	@echo ""
-	@echo "$(GREEN)Production containers:$(RESET)"
-	@$(DOCKER_COMPOSE_PROD) ps 2>/dev/null || echo "No prod containers running"
+	@if [ "$(NODE_ENV)" = "production" ]; then \
+		echo "$(GREEN)Production containers (NODE_ENV=production):$(RESET)"; \
+		CONTAINERS=$$(docker ps --filter "name=purchase-organizer-app-prod" --filter "name=purchase-organizer-db-prod" --format "{{.Names}}" 2>/dev/null); \
+		if [ -z "$$CONTAINERS" ]; then \
+			echo "$(YELLOW)No production containers running$(RESET)"; \
+		else \
+			docker ps --filter "name=purchase-organizer-app-prod" --filter "name=purchase-organizer-db-prod" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"; \
+		fi \
+	else \
+		echo "$(GREEN)Development containers (NODE_ENV=development):$(RESET)"; \
+		CONTAINERS=$$(docker ps --filter "name=purchase-organizer-dev" --filter "name=purchase-organizer-db" --format "{{.Names}}" 2>/dev/null); \
+		if [ -z "$$CONTAINERS" ]; then \
+			echo "$(YELLOW)No development containers running$(RESET)"; \
+		else \
+			docker ps --filter "name=purchase-organizer-dev" --filter "name=purchase-organizer-db" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"; \
+		fi \
+	fi
