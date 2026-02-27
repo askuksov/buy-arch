@@ -3,40 +3,38 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { CategoryFormInput } from '@/types'
-import { DEFAULT_CATEGORY_COLORS } from '@/lib/constants'
+import { TagFormInput } from '@/types'
+import { DEFAULT_TAG_COLORS } from '@/lib/constants'
 
-const categoryFormSchema = z.object({
+const tagFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(50, 'Name is too long'),
   color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid color').optional(),
-  icon: z.string().optional(),
 })
 
-type CategoryFormProps = {
-  initialData?: Partial<CategoryFormInput>
-  onSubmit: (data: CategoryFormInput) => void
+type TagFormProps = {
+  initialData?: Partial<TagFormInput>
+  onSubmit: (data: TagFormInput) => void
   onCancel: () => void
   isLoading?: boolean
 }
 
-export function CategoryForm({
+export function TagForm({
   initialData,
   onSubmit,
   onCancel,
   isLoading,
-}: CategoryFormProps) {
+}: TagFormProps) {
   const {
     register,
     handleSubmit,
     watch,
     setValue,
     formState: { errors },
-  } = useForm<CategoryFormInput>({
-    resolver: zodResolver(categoryFormSchema),
+  } = useForm<TagFormInput>({
+    resolver: zodResolver(tagFormSchema),
     defaultValues: {
       name: initialData?.name || '',
-      color: initialData?.color || DEFAULT_CATEGORY_COLORS[0],
-      icon: initialData?.icon || '',
+      color: initialData?.color || DEFAULT_TAG_COLORS[0],
     },
   })
 
@@ -46,14 +44,14 @@ export function CategoryForm({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Category Name *
+          Tag Name *
         </label>
         <input
           {...register('name')}
           id="name"
           type="text"
           className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-          placeholder="e.g., Electronics, Clothing, Home & Garden"
+          placeholder="e.g., Urgent, Gift, Favorite"
         />
         {errors.name && (
           <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name.message}</p>
@@ -62,10 +60,10 @@ export function CategoryForm({
 
       <div>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Category Color
+          Tag Color
         </label>
         <div className="flex gap-2 flex-wrap">
-          {DEFAULT_CATEGORY_COLORS.map((color) => (
+          {DEFAULT_TAG_COLORS.map((color) => (
             <button
               key={color}
               type="button"
@@ -84,29 +82,10 @@ export function CategoryForm({
           {...register('color')}
           type="text"
           className="mt-2 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-          placeholder="#3b82f6"
+          placeholder="#ef4444"
         />
         {errors.color && (
           <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.color.message}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="icon" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-          Icon Name (optional)
-        </label>
-        <input
-          {...register('icon')}
-          id="icon"
-          type="text"
-          className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-          placeholder="e.g., Laptop, Shirt, Home"
-        />
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          Icon names from lucide-react (e.g., Laptop, Shirt, Home)
-        </p>
-        {errors.icon && (
-          <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.icon.message}</p>
         )}
       </div>
 

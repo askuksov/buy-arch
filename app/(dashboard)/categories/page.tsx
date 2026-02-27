@@ -56,7 +56,7 @@ export default function CategoriesPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p>Loading categories...</p>
+        <p className="text-gray-700 dark:text-gray-300">Loading categories...</p>
       </div>
     )
   }
@@ -66,11 +66,11 @@ export default function CategoriesPage() {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Categories</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Categories</h1>
         {!showCreateForm && !editingId && (
           <button
             onClick={() => setShowCreateForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
           >
             <Plus size={20} />
             Add Category
@@ -79,8 +79,8 @@ export default function CategoriesPage() {
       </div>
 
       {showCreateForm && (
-        <div className="mb-6 bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Create Category</h2>
+        <div className="mb-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Create Category</h2>
           <CategoryForm
             onSubmit={handleCreate}
             onCancel={() => setShowCreateForm(false)}
@@ -90,8 +90,8 @@ export default function CategoriesPage() {
       )}
 
       {editingId && editingCategory && (
-        <div className="mb-6 bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Edit Category</h2>
+        <div className="mb-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Edit Category</h2>
           <CategoryForm
             initialData={{
               name: editingCategory.name,
@@ -109,7 +109,7 @@ export default function CategoriesPage() {
         {categories?.map((category) => (
           <div
             key={category.id}
-            className="bg-white p-4 rounded-lg shadow-md flex items-center justify-between"
+            className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md flex items-center justify-between"
           >
             <div className="flex items-center gap-4">
               <div
@@ -119,10 +119,10 @@ export default function CategoriesPage() {
                 {category.name.charAt(0).toUpperCase()}
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {category.name}
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   {category._count.purchases} purchase(s)
                 </p>
               </div>
@@ -131,14 +131,14 @@ export default function CategoriesPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setEditingId(category.id)}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded-md"
+                className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md transition-colors"
                 aria-label="Edit category"
               >
                 <Pencil size={18} />
               </button>
               <button
                 onClick={() => handleDelete(category.id, category.name)}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-md"
+                className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-gray-700 rounded-md transition-colors"
                 aria-label="Delete category"
               >
                 <Trash2 size={18} />
@@ -148,8 +148,8 @@ export default function CategoriesPage() {
         ))}
 
         {categories?.length === 0 && !showCreateForm && (
-          <div className="text-center py-12 bg-white rounded-lg shadow-md">
-            <p className="text-gray-500">No categories yet. Create your first one!</p>
+          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+            <p className="text-gray-500 dark:text-gray-400">No categories yet. Create your first one!</p>
           </div>
         )}
       </div>
