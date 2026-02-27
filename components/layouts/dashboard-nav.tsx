@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Tag, FolderOpen, LayoutDashboard } from 'lucide-react'
+import { Tag, FolderOpen, LayoutDashboard, ShoppingBag } from 'lucide-react'
 
 export function DashboardNav() {
   const pathname = usePathname()
@@ -12,6 +12,11 @@ export function DashboardNav() {
       href: '/dashboard',
       icon: LayoutDashboard,
       label: 'Dashboard',
+    },
+    {
+      href: '/purchases',
+      icon: ShoppingBag,
+      label: 'Purchases',
     },
     {
       href: '/categories',
