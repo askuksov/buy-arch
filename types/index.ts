@@ -100,3 +100,21 @@ export type PurchaseFilters = {
 
 export type SortOption = 'date' | 'price' | 'createdAt'
 export type SortOrder = 'asc' | 'desc'
+
+export type UploadedImage = {
+  filename: string
+  url: string
+  size: number
+  mimeType: string
+  originalName: string
+}
+
+export type ImageRecord = {
+  id: string
+  url: string
+  filename: string
+  size: number
+  mimeType: string
+  purchaseId: string
+  createdAt: Date
+}

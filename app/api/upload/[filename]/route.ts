@@ -1,0 +1,27 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { deleteImage } from '@/lib/upload'
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ filename: string }> }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { filename } = await params
+    await deleteImage(filename)
+
+    return NextResponse.json({ message: 'Image deleted successfully' })
+  } catch (error) {
+    console.error('Delete error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
