@@ -106,7 +106,7 @@ export type UploadedImage = {
   url: string
   size: number
   mimeType: string
-  originalName: string
+  originalName?: string
 }
 
 export type ImageRecord = {

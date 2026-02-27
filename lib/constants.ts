@@ -31,3 +31,18 @@ export const DEFAULT_TAG_COLORS = [
   '#8b5cf6', // purple
   '#06b6d4', // cyan
 ] as const
+
+// Currency options for forms
+export const CURRENCY_OPTIONS = [
+  { value: 'USD', label: 'USD ($)' },
+  { value: 'EUR', label: 'EUR (€)' },
+  { value: 'UAH', label: 'UAH (₴)' },
+] as const
+
+// Marketplace options for forms
+export const MARKETPLACE_OPTIONS = [
+  { value: 'aliexpress', label: 'AliExpress' },
+  { value: 'temu', label: 'Temu' },
+  { value: 'olx', label: 'OLX' },
+  { value: 'rozetka', label: 'Rozetka' },
+] as const

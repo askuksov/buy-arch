@@ -10,7 +10,7 @@ export type UploadedImage = {
   url: string
   size: number
   mimeType: string
-  originalName: string
+  originalName?: string
 }
 
 type ImageUploadProps = {
@@ -133,7 +133,7 @@ export function ImageUpload({
             >
               <Image
                 src={image.url}
-                alt={image.originalName}
+                alt={image.originalName || image.filename || 'Product image'}
                 fill
                 className="object-cover"
               />
