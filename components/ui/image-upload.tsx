@@ -92,20 +92,20 @@ export function ImageUpload({
         {...getRootProps()}
         className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
           isDragActive
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300 hover:border-gray-400'
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+            : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
         } ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         <input {...getInputProps()} />
-        <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+        <Upload className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
         {isDragActive ? (
-          <p className="text-blue-600">Drop images here...</p>
+          <p className="text-blue-600 dark:text-blue-400">Drop images here...</p>
         ) : (
           <div>
-            <p className="text-gray-600 mb-2">
+            <p className="text-gray-600 dark:text-gray-400 mb-2">
               Drag & drop images here, or click to select
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-500">
               PNG, JPG, WEBP up to 5MB ({images.length}/{maxFiles})
             </p>
           </div>
@@ -113,13 +113,13 @@ export function ImageUpload({
       </div>
 
       {uploadError && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3">
-          <p className="text-sm text-red-800">{uploadError}</p>
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
+          <p className="text-sm text-red-800 dark:text-red-400">{uploadError}</p>
         </div>
       )}
 
       {isUploading && (
-        <div className="text-center text-sm text-gray-600">
+        <div className="text-center text-sm text-gray-600 dark:text-gray-400">
           Uploading images...
         </div>
       )}
@@ -129,7 +129,7 @@ export function ImageUpload({
           {images.map((image) => (
             <div
               key={image.filename}
-              className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden"
+              className="relative group aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden"
             >
               <Image
                 src={image.url}
@@ -151,9 +151,9 @@ export function ImageUpload({
       )}
 
       {images.length === 0 && !isUploading && (
-        <div className="text-center py-8 bg-gray-50 rounded-lg">
-          <ImageIcon className="mx-auto h-12 w-12 text-gray-300 mb-2" />
-          <p className="text-gray-500 text-sm">No images uploaded yet</p>
+        <div className="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <ImageIcon className="mx-auto h-12 w-12 text-gray-300 dark:text-gray-600 mb-2" />
+          <p className="text-gray-500 dark:text-gray-400 text-sm">No images uploaded yet</p>
         </div>
       )}
     </div>

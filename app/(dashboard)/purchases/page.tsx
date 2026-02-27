@@ -1,43 +1,25 @@
 'use client'
 
 import { useState } from 'react'
-import { usePurchases, useCreatePurchase, useUpdatePurchase, useDeletePurchase } from '@/hooks/use-purchases'
-import { PurchaseForm } from '@/components/forms/purchase-form'
-import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { usePurchases, useDeletePurchase } from '@/hooks/use-purchases'
+import { PurchaseCard } from '@/components/purchases/purchase-card'
+import { Pagination } from '@/components/ui/pagination'
+import { Plus, Grid, List, Eye, Pencil, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { formatCurrency, formatDate, getMarketplaceLabel } from '@/lib/utils'
+
+export const dynamic = 'force-dynamic'
 
 export default function PurchasesPage() {
   const [page, setPage] = useState(1)
-  const [showCreateForm, setShowCreateForm] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const { data, isLoading } = usePurchases({ page, limit: 20 })
-  const createPurchase = useCreatePurchase()
-  const updatePurchase = useUpdatePurchase()
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
+
+  const { data, isLoading, error } = usePurchases({ page, limit: 12 })
   const deletePurchase = useDeletePurchase()
 
-  const handleCreate = async (data: any) => {
-    try {
-      await createPurchase.mutateAsync(data)
-      setShowCreateForm(false)
-    } catch (error) {
-      console.error('Failed to create purchase:', error)
-      alert(error instanceof Error ? error.message : 'Failed to create purchase')
-    }
-  }
-
-  const handleUpdate = async (data: any) => {
-    if (!editingId) return
-
-    try {
-      await updatePurchase.mutateAsync({ id: editingId, data })
-      setEditingId(null)
-    } catch (error) {
-      console.error('Failed to update purchase:', error)
-      alert(error instanceof Error ? error.message : 'Failed to update purchase')
-    }
-  }
-
-  const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to delete "${title}"?`)) return
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this purchase?')) return
 
     try {
       await deletePurchase.mutateAsync(id)
@@ -47,187 +29,227 @@ export default function PurchasesPage() {
     }
   }
 
-  if (isLoading) {
+  const handleView = (id: string) => {
+    window.location.href = `/purchases/${id}`
+  }
+
+  if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-700 dark:text-gray-300">Loading purchases...</p>
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Failed to load purchases</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     )
   }
 
-  const editingPurchase = data?.purchases.find((p) => p.id === editingId)
-
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Purchases</h1>
-        {!showCreateForm && !editingId && (
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-colors"
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">My Purchases</h1>
+          {data && (
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              {data.pagination.total} total purchase(s)
+            </p>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          {/* View Toggle */}
+          <div className="flex border border-gray-300 dark:border-gray-600 rounded-md">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-2 ${
+                viewMode === 'grid'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              <Grid size={20} />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 ${
+                viewMode === 'list'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              <List size={20} />
+            </button>
+          </div>
+
+          <Link
+            href="/purchases/new"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             <Plus size={20} />
             Add Purchase
-          </button>
-        )}
+          </Link>
+        </div>
       </div>
 
-      {showCreateForm && (
-        <div className="mb-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-            Create Purchase
-          </h2>
-          <PurchaseForm
-            onSubmit={handleCreate}
-            onCancel={() => setShowCreateForm(false)}
-            isLoading={createPurchase.isPending}
-          />
+      {/* Loading State */}
+      {isLoading && (
+        <div className="text-center py-12">
+          <p className="text-gray-600 dark:text-gray-400">Loading purchases...</p>
         </div>
       )}
 
-      {editingId && editingPurchase && (
-        <div className="mb-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-            Edit Purchase
-          </h2>
-          <PurchaseForm
-            initialData={{
-              title: editingPurchase.title,
-              description: editingPurchase.description || undefined,
-              price: Number(editingPurchase.price),
-              currencyCode: editingPurchase.currencyCode,
-              purchaseDate: editingPurchase.purchaseDate,
-              marketplaceCode: editingPurchase.marketplaceCode,
-              productUrl: editingPurchase.productUrl || undefined,
-              categoryId: editingPurchase.category?.id,
-              tagIds: editingPurchase.tags.map((t) => t.id),
-              images: editingPurchase.images.map((img) => ({
-                url: img.url,
-                filename: img.url.split('/').pop() || '',
-                size: 0,
-                mimeType: 'image/jpeg',
-                originalName: img.url.split('/').pop() || '',
-              })),
-            }}
-            onSubmit={handleUpdate}
-            onCancel={() => setEditingId(null)}
-            isLoading={updatePurchase.isPending}
-          />
+      {/* Empty State */}
+      {data && data.purchases.length === 0 && !isLoading && (
+        <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            No purchases yet. Start adding your first purchase!
+          </p>
+          <Link
+            href="/purchases/new"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            <Plus size={20} />
+            Add First Purchase
+          </Link>
         </div>
       )}
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-900">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Title
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Category
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Marketplace
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Date
-                </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {data?.purchases.map((purchase) => (
-                <tr key={purchase.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                      {purchase.title}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 dark:text-white">
-                      {purchase.currency.symbol}{Number(purchase.price).toFixed(2)}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {purchase.category ? (
-                      <span
-                        className="px-2 py-1 text-xs font-medium rounded-full"
-                        style={{
-                          backgroundColor: purchase.category.color || '#3b82f6',
-                          color: 'white',
-                        }}
-                      >
-                        {purchase.category.name}
-                      </span>
-                    ) : (
-                      <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 dark:text-white">
-                      {purchase.marketplace.name}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                    {new Date(purchase.purchaseDate).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => setEditingId(purchase.id)}
-                        className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-md transition-colors"
-                        aria-label="Edit purchase"
-                      >
-                        <Pencil size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(purchase.id, purchase.title)}
-                        className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-gray-700 rounded-md transition-colors"
-                        aria-label="Delete purchase"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+      {/* Purchases Grid/List */}
+      {data && data.purchases.length > 0 && (
+        <>
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {data.purchases.map((purchase) => (
+                <PurchaseCard
+                  key={purchase.id}
+                  purchase={purchase}
+                  onDelete={handleDelete}
+                  onView={handleView}
+                />
               ))}
-            </tbody>
-          </table>
-        </div>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-900">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Purchase
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Price
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Category
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    {data.purchases.map((purchase) => (
+                      <tr key={purchase.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            {purchase.images[0] ? (
+                              <div className="relative w-12 h-12 flex-shrink-0 bg-gray-100 dark:bg-gray-700 rounded overflow-hidden">
+                                <Image
+                                  src={purchase.images[0].url}
+                                  alt={purchase.title}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-12 h-12 flex-shrink-0 bg-gray-100 dark:bg-gray-700 rounded flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs">
+                                No img
+                              </div>
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                {purchase.title}
+                              </div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                {getMarketplaceLabel(purchase.marketplace.code)}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                            {formatCurrency(Number(purchase.price), purchase.currency.code)}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {purchase.category ? (
+                            <span
+                              className="px-2 py-1 text-xs font-medium rounded text-white"
+                              style={{ backgroundColor: purchase.category.color || '#3b82f6' }}
+                            >
+                              {purchase.category.name}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-gray-500 dark:text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                          {formatDate(purchase.purchaseDate)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => handleView(purchase.id)}
+                              className="p-2 text-blue-600 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-500/20 rounded transition-colors"
+                              title="View details"
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <Link
+                              href={`/purchases/${purchase.id}/edit`}
+                              className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600/30 rounded transition-colors"
+                              title="Edit purchase"
+                            >
+                              <Pencil size={16} />
+                            </Link>
+                            <button
+                              onClick={() => handleDelete(purchase.id)}
+                              className="p-2 text-red-600 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-500/20 rounded transition-colors"
+                              title="Delete purchase"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
-        {data?.purchases.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">No purchases yet. Create your first one!</p>
-          </div>
-        )}
-      </div>
-
-      {data && data.pagination.totalPages > 1 && (
-        <div className="mt-6 flex justify-center gap-2">
-          <button
-            onClick={() => setPage(page - 1)}
-            disabled={page === 1}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-          <span className="px-4 py-2 text-gray-700 dark:text-gray-300">
-            Page {page} of {data.pagination.totalPages}
-          </span>
-          <button
-            onClick={() => setPage(page + 1)}
-            disabled={page === data.pagination.totalPages}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
-        </div>
+          {/* Pagination */}
+          {data.pagination.totalPages > 1 && (
+            <div className="mt-8">
+              <Pagination
+                currentPage={page}
+                totalPages={data.pagination.totalPages}
+                onPageChange={setPage}
+              />
+            </div>
+          )}
+        </>
       )}
     </div>
   )

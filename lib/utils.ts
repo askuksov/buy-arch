@@ -19,3 +19,13 @@ export function formatDate(date: Date | string): string {
     day: 'numeric',
   })
 }
+
+export function getMarketplaceLabel(code: string): string {
+  const labels: Record<string, string> = {
+    aliexpress: 'AliExpress',
+    temu: 'Temu',
+    olx: 'OLX',
+    rozetka: 'Rozetka',
+  }
+  return labels[code] || code
+}

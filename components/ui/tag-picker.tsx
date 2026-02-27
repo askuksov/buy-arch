@@ -53,15 +53,15 @@ export function TagPicker({
   if (isLoading) {
     return (
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">{label}</label>
-        <div className="text-sm text-gray-500">Loading tags...</div>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>
+        <div className="text-sm text-gray-500 dark:text-gray-400">Loading tags...</div>
       </div>
     )
   }
 
   return (
     <div className="space-y-2" data-tag-picker>
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">{label}</label>
 
       {/* Selected Tags Display */}
       {selectedTags.length > 0 && (
@@ -83,7 +83,7 @@ export function TagPicker({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full flex items-center justify-between px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
           <span>
             {selectedTags.length === 0
@@ -98,7 +98,7 @@ export function TagPicker({
 
         {/* Dropdown Menu */}
         {isOpen && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-auto">
             {tags && tags.length > 0 ? (
               <div className="py-1">
                 {tags.map((tag) => {
@@ -108,24 +108,24 @@ export function TagPicker({
                       key={tag.id}
                       type="button"
                       onClick={() => handleToggleTag(tag.id)}
-                      className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-gray-50 transition-colors"
+                      className="w-full flex items-center justify-between px-3 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                     >
                       <div className="flex items-center gap-2">
                         <div
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: tag.color || '#3b82f6' }}
                         />
-                        <span className="text-gray-900">{tag.name}</span>
+                        <span className="text-gray-900 dark:text-gray-100">{tag.name}</span>
                       </div>
                       {isSelected && (
-                        <Check size={16} className="text-blue-600" />
+                        <Check size={16} className="text-blue-600 dark:text-blue-400" />
                       )}
                     </button>
                   )
                 })}
               </div>
             ) : (
-              <div className="px-3 py-6 text-center text-sm text-gray-500">
+              <div className="px-3 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
                 No tags available. Create tags first.
               </div>
             )}

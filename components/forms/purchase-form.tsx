@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useCategories } from '@/hooks/use-categories'
-import { useTags } from '@/hooks/use-tags'
 import { ImageUpload } from '@/components/ui/image-upload'
 import { TagPicker } from '@/components/ui/tag-picker'
 import { UploadedImage } from '@/types'
@@ -49,7 +48,6 @@ export function PurchaseForm({
   const [images, setImages] = useState<UploadedImage[]>(initialData?.images || [])
 
   const { data: categories } = useCategories()
-  const { data: tags } = useTags()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -209,19 +207,14 @@ export function PurchaseForm({
         </select>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Tags
-        </label>
-        <TagPicker
-          availableTags={tags || []}
-          selectedTagIds={tagIds}
-          onChange={setTagIds}
-        />
-      </div>
+      <TagPicker
+        selectedTagIds={tagIds}
+        onChange={setTagIds}
+        label="Tags"
+      />
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
           Images
         </label>
         <ImageUpload images={images} onImagesChange={setImages} />
