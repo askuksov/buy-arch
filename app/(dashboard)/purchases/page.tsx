@@ -1,9 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { usePurchases, useDeletePurchase } from '@/hooks/use-purchases'
 import { PurchaseCard } from '@/components/purchases/purchase-card'
+import { PurchaseFilters, FilterValues } from '@/components/purchases/purchase-filters'
 import { Pagination } from '@/components/ui/pagination'
+import { useDebounce } from '@/hooks/use-debounce'
 import { Plus, Grid, List, Eye, Pencil, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -12,11 +15,63 @@ import { formatCurrency, formatDate, getMarketplaceLabel } from '@/lib/utils'
 export const dynamic = 'force-dynamic'
 
 export default function PurchasesPage() {
-  const [page, setPage] = useState(1)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Initialize filters from URL
+  const [filters, setFilters] = useState<FilterValues>({
+    search: searchParams.get('search') || '',
+    categoryId: searchParams.get('categoryId') || '',
+    tagIds: searchParams.get('tagIds')?.split(',').filter(Boolean) || [],
+    marketplace: searchParams.get('marketplace') || '',
+    minPrice: searchParams.get('minPrice') || '',
+    maxPrice: searchParams.get('maxPrice') || '',
+    startDate: searchParams.get('startDate') || '',
+    endDate: searchParams.get('endDate') || '',
+    sortBy: searchParams.get('sortBy') || 'createdAt',
+    sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc',
+  })
+
+  const [page, setPage] = useState(
+    parseInt(searchParams.get('page') || '1')
+  )
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
-  const { data, isLoading, error } = usePurchases({ page, limit: 12 })
+  // Debounce search to avoid too many API calls
+  const debouncedSearch = useDebounce(filters.search, 500)
+
+  // Fetch purchases with filters
+  const { data, isLoading, error } = usePurchases({
+    page,
+    limit: 12,
+    search: debouncedSearch,
+    categoryId: filters.categoryId,
+    marketplaceCode: filters.marketplace,
+    tagIds: filters.tagIds,
+    sortBy: filters.sortBy,
+    sortOrder: filters.sortOrder,
+  })
+
   const deletePurchase = useDeletePurchase()
+
+  // Update URL when filters change
+  useEffect(() => {
+    const params = new URLSearchParams()
+
+    if (filters.search) params.set('search', filters.search)
+    if (filters.categoryId) params.set('categoryId', filters.categoryId)
+    if (filters.tagIds.length) params.set('tagIds', filters.tagIds.join(','))
+    if (filters.marketplace) params.set('marketplace', filters.marketplace)
+    if (filters.minPrice) params.set('minPrice', filters.minPrice)
+    if (filters.maxPrice) params.set('maxPrice', filters.maxPrice)
+    if (filters.startDate) params.set('startDate', filters.startDate)
+    if (filters.endDate) params.set('endDate', filters.endDate)
+    if (filters.sortBy !== 'createdAt') params.set('sortBy', filters.sortBy)
+    if (filters.sortOrder !== 'desc') params.set('sortOrder', filters.sortOrder)
+    if (page !== 1) params.set('page', page.toString())
+
+    router.push(`/purchases?${params.toString()}`, { scroll: false })
+  }, [filters, page, router])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this purchase?')) return
@@ -97,6 +152,9 @@ export default function PurchasesPage() {
         </div>
       </div>
 
+      {/* Filters */}
+      <PurchaseFilters filters={filters} onFiltersChange={setFilters} />
+
       {/* Loading State */}
       {isLoading && (
         <div className="text-center py-12">
@@ -108,15 +166,19 @@ export default function PurchasesPage() {
       {data && data.purchases.length === 0 && !isLoading && (
         <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-md">
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            No purchases yet. Start adding your first purchase!
+            {filters.search || filters.categoryId || filters.marketplace
+              ? 'No purchases match your filters'
+              : 'No purchases yet. Start adding your first purchase!'}
           </p>
-          <Link
-            href="/purchases/new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            <Plus size={20} />
-            Add First Purchase
-          </Link>
+          {!filters.search && !filters.categoryId && (
+            <Link
+              href="/purchases/new"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              <Plus size={20} />
+              Add First Purchase
+            </Link>
+          )}
         </div>
       )}
 
